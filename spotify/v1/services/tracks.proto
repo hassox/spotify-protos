@@ -1,0 +1,109 @@
+package spotify.v1;
+
+import "fender/v1/field_options.proto";
+import "fender/v1.proto";
+import "public/international/country_code.proto";
+import "spotify/v1/models/common.proto";
+import "spotify/v1/models/album.proto";
+
+/** Get Spotify catalog information for a single track identified by its unique Spotify ID. */
+message GetTrackRequest {
+  /** The Spotify ID for the track. */
+  optional string id = 1 [(fender.v1.fender_field).present = true];
+}
+
+message GetTrackResponse {
+  optional Track track = 1;
+}
+
+/** Get Spotify catalog information for multiple tracks based on their Spotify IDs. */
+message ListTracksRequest {
+  /** A comma-separated list of the Spotify IDs for the tracks. Maximum: 50 IDs. */
+  optional string ids = 1 [(fender.v1.fender_field).present = true];
+}
+
+message ListTracksResponse {
+  repeated Track tracks = 1;
+}
+
+message TrackSearchRequest {
+  /**
+   * The search query's keywords (and optional field filters), for example q="roadhouse blues".
+   * The search is not case-sensitive: "roadhouse" will match "Roadhouse", "roadHouse", etc.
+   *
+   * Keywords will be matched in any order unless surrounded by quotes, thus q="roadhouse blues" will match both "Blues Roadhouse" and "Roadhouse of the Blues".
+   * Quotation marks can be used to limit the match to a phrase: q='"roadhouse blues"' will match "My Roadhouse Blues" but not "Roadhouse of the Blues".
+   *
+   * By default, results are returned when a match is found in any field of the target object type.
+   * Searches can be made more specific by specifying an album, artist or track field filter. 
+   * For example q="album:gold artist:abba" will search for albums with the text "gold" in the album name and the text "abba" in an artist name.
+   *
+   * Other possible field filters, depending on object types being searched, include year, genre, upc, and isrc.
+   * For example, q = "damian genre:reggae-pop"
+   *
+   * The asterisk (*) character can, with some limitations, be used as a wildcard (maximum: 2 per query).
+   * It will match a variable number of non-white-space characters.
+   * It cannot be used in a quoted phrase, in a field filter, or as the first character of the keyword string.
+   */
+  optional string q = 1 [(fender.v1.fender_field).present = true];
+
+  /**
+   * Specifies the type of serach.
+   * You should not change this or the response will not make sense
+   * 
+   */
+  optional ObjectType type = 2 [default = track];
+
+  /** The maximum number of objects to return */
+  optional uint32 limit = 3 [
+    default = 20,
+    (fender.v1.fender_field) = { max: 50, min: 1 }
+  ];
+
+  /**
+   * The index of the first object to return.
+   * Use with limit to get the next set of tracks.
+   */
+  optional uint32 offset = 4 [ default = 0 ];
+}
+
+message TrackSearchResponse {
+  /** The returned artists */
+  optional TrackPage tracks = 1;
+}
+
+/** Endpoints for retrieving information about one or more tracks from the Spotify catalog. */
+service TrackMetadata {
+  option (fender.v1.fender_service) = {
+    address: "https://api.spotify.com",
+    request_format: JSON
+  };
+
+  /** Get Spotify catalog information for a single track identified by its unique Spotify ID. */
+  rpc Get (GetTrackRequest) returns (GetTrackResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/tracks/{+id}",
+      response_body_field: { name: "track" }
+    };
+  }
+
+  /** Get Spotify catalog information for multiple tracks based on their Spotify IDs. */
+  rpc List (ListTracksRequest) returns (ListTracksResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/tracks"
+    };
+  }
+
+  /** 
+   * Get Spotify catalog information about artists, albums, or tracks that match a keyword string.
+   */
+  rpc Search (TrackSearchRequest) returns (TrackSearchResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/search"
+    };
+  }
+}
+

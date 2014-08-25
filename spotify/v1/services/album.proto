@@ -1,0 +1,152 @@
+package spotify.v1;
+
+import "fender/v1/field_options.proto";
+import "fender/v1.proto";
+import "spotify/v1/models/album.proto";
+import "spotify/v1/models/common.proto";
+
+/** Fetch an individual album */
+message AlbumGetRequest {
+  /** The id of the album */
+  optional string id = 1 [(fender.v1.fender_field).present = true];
+}
+
+message AlbumGetResponse {
+  /** The requested album */
+  optional Album album = 1;
+}
+
+/** Request a set of albums */
+message AlbumListRequest {
+  /**
+   * Comma seperated list of ids
+   * Maximum of 20
+  */
+  optional string ids = 1 [(fender.v1.fender_field).present = true];
+}
+
+message AlbumListResponse {
+  /** The requested albums */
+  repeated Album albums = 1;
+}
+
+/** Request the tracks for a given album */
+message AlbumTracksRequest {
+  /** The id of the ablum */
+  optional string id = 1 [(fender.v1.fender_field).present = true];
+
+  /** The maximum number of tracks to return */
+  optional uint32 limit = 2 [
+    default = 20,
+    (fender.v1.fender_field) = { max: 50, min: 1 }
+  ];
+
+  /**
+   * The index of the first track to return.
+   * Use with limit to get the next set of tracks.
+   */
+  optional uint32 offset = 3 [ default = 0 ];
+}
+
+message AlbumTracksResponse {
+  /** A page of simplified track objects */
+  optional TrackPage track_page = 1;
+}
+
+message AlbumSearchRequest {
+  /**
+   * The search query's keywords (and optional field filters), for example q="roadhouse blues".
+   * The search is not case-sensitive: "roadhouse" will match "Roadhouse", "roadHouse", etc.
+   *
+   * Keywords will be matched in any order unless surrounded by quotes, thus q="roadhouse blues" will match both "Blues Roadhouse" and "Roadhouse of the Blues".
+   * Quotation marks can be used to limit the match to a phrase: q='"roadhouse blues"' will match "My Roadhouse Blues" but not "Roadhouse of the Blues".
+   *
+   * By default, results are returned when a match is found in any field of the target object type.
+   * Searches can be made more specific by specifying an album, artist or track field filter. 
+   * For example q="album:gold artist:abba" will search for albums with the text "gold" in the album name and the text "abba" in an artist name.
+   *
+   * Other possible field filters, depending on object types being searched, include year, genre, upc, and isrc.
+   * For example, q = "damian genre:reggae-pop"
+   *
+   * The asterisk (*) character can, with some limitations, be used as a wildcard (maximum: 2 per query).
+   * It will match a variable number of non-white-space characters.
+   * It cannot be used in a quoted phrase, in a field filter, or as the first character of the keyword string.
+   */
+  optional string q = 1 [(fender.v1.fender_field).present = true];
+
+  /**
+   * Specifies the type of serach.
+   * You should not change this or the response will not make sense
+   * 
+   */
+  optional ObjectType type = 2 [default = album];
+
+  /** The maximum number of objects to return */
+  optional uint32 limit = 3 [
+    default = 20,
+    (fender.v1.fender_field) = { max: 50, min: 1 }
+  ];
+
+  /**
+   * The index of the first object to return.
+   * Use with limit to get the next set of tracks.
+   */
+  optional uint32 offset = 4 [ default = 0 ];
+}
+
+message AlbumSearchResponse {
+  /** The returned albums */
+  optional AlbumPage albums = 1;
+}
+
+service AlbumMetadata {
+  option (fender.v1.fender_service) = {
+    address: "https://api.spotify.com",
+    request_format: JSON
+  };
+
+  /**
+   * Get Spotify catalog information for a single album.
+   */
+  rpc Get (AlbumGetRequest) returns (AlbumGetResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/albums/{+id}",
+      response_body_field: { name: "album" }
+    };
+  }
+
+  /**
+   * Objects are returned in the order requested.
+   * If an object is not found, a null value is returned in the appropriate position.
+   * Duplicate ids in the query will result in duplicate objects in the response.
+   */
+  rpc List (AlbumListRequest) returns (AlbumListResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/albums"
+    };
+  }
+
+  /**
+   * Get Spotify catalog information about an album’s tracks. 
+   * Optional parameters can be used to limit the number of tracks returned.
+   */
+  rpc Tracks (AlbumTracksRequest) returns (AlbumTracksResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/albums/{+id}/tracks",
+      response_body_field: { name: "track_page" }
+    };
+  }
+
+  /** 
+   * Get Spotify catalog information about artists, albums, or tracks that match a keyword string.
+   */
+  rpc Search (AlbumSearchRequest) returns (AlbumSearchResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/search"
+    };
+  }
+}

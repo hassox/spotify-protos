@@ -1,0 +1,198 @@
+package spotify.v1;
+
+import "fender/v1/field_options.proto";
+import "fender/v1.proto";
+import "public/international/country_code.proto";
+import "spotify/v1/models/common.proto";
+import "spotify/v1/models/artist.proto";
+import "spotify/v1/models/album.proto";
+
+message GetArtistRequest {
+  /** The Spotify ID of the artist */
+  optional string id = 1 [(fender.v1.fender_field).present = true];
+}
+
+message GetArtistResponse {
+  optional Artist artist = 1;
+}
+
+message ListArtistsRequest {
+  /** A comma-separated list of the Spotify IDs for the artists. Maximum: 50 IDs */
+  optional string ids = 1 [(fender.v1.fender_field).present = true];
+}
+
+message ListArtistsResponse {
+  repeated Artist artists = 1;
+}
+
+message AlbumsArtistsRequest {
+  /** The Spotify ID for the artist. */
+  optional string id = 1 [(fender.v1.fender_field).present = true];
+
+  /** 
+   * A comma-separated list of keywords that will be used to filter the response. If not supplied, all album types will be returned.
+   * Valid Values: 'album', 'single', 'appears_on', 'compilation'
+   */
+  optional string album_type = 2;
+
+  /**
+   * Supply this parameter to limit the response to one particular country. 
+   * Note if you do not provide this field, you are likely to get duplicate results per album, one for each country in which the album is available!
+   */
+  optional public.international.CountryCode country = 3;
+
+  /** The number of album objects to return. Default: 20. Minimum: 1. Maximum: 50. */
+  optional uint32 limit = 4 [
+    default = 20,
+    (fender.v1.fender_field) = { min: 1, max: 50 }
+  ];
+
+  /** 
+   * The index of the first album to return.
+   * Default: 0 (i.e., the first album).
+   * Use with limit to get the next set of albums.
+   */
+  optional uint32 offset = 5;
+}
+
+message AlbumsArtistsResponse {
+  optional AlbumPage album = 1;
+}
+
+/** Get Spotify catalog information about an artist’s top tracks by country. */
+message TopTracksArtistsRequest {
+  /** The Spotify ID for the artist. */
+  optional string id = 1 [(fender.v1.fender_field).present = true];
+
+  optional public.international.CountryCode country = 2 [(fender.v1.fender_field).present = true];
+}
+
+message TopTracksArtistsResponse {
+  repeated Track tracks = 1;
+}
+
+/** 
+ * Get Spotify catalog information about artists similar to a given artist.
+ * Similarity is based on analysis of the Spotify community’s listening history.
+ */
+message RelatedArtistsRequest {
+  /** The Spotify ID for the artist. */
+  optional string id = 1 [(fender.v1.fender_field).present = true];
+}
+
+message RelatedArtistsResponse {
+  repeated Artist artists = 1;
+}
+
+message ArtistSearchRequest {
+  /**
+   * The search query's keywords (and optional field filters), for example q="roadhouse blues".
+   * The search is not case-sensitive: "roadhouse" will match "Roadhouse", "roadHouse", etc.
+   *
+   * Keywords will be matched in any order unless surrounded by quotes, thus q="roadhouse blues" will match both "Blues Roadhouse" and "Roadhouse of the Blues".
+   * Quotation marks can be used to limit the match to a phrase: q='"roadhouse blues"' will match "My Roadhouse Blues" but not "Roadhouse of the Blues".
+   *
+   * By default, results are returned when a match is found in any field of the target object type.
+   * Searches can be made more specific by specifying an album, artist or track field filter. 
+   * For example q="album:gold artist:abba" will search for albums with the text "gold" in the album name and the text "abba" in an artist name.
+   *
+   * Other possible field filters, depending on object types being searched, include year, genre, upc, and isrc.
+   * For example, q = "damian genre:reggae-pop"
+   *
+   * The asterisk (*) character can, with some limitations, be used as a wildcard (maximum: 2 per query).
+   * It will match a variable number of non-white-space characters.
+   * It cannot be used in a quoted phrase, in a field filter, or as the first character of the keyword string.
+   */
+  optional string q = 1 [(fender.v1.fender_field).present = true];
+
+  /**
+   * Specifies the type of serach.
+   * You should not change this or the response will not make sense
+   * 
+   */
+  optional ObjectType type = 2 [default = artist];
+
+  /** The maximum number of objects to return */
+  optional uint32 limit = 3 [
+    default = 20,
+    (fender.v1.fender_field) = { max: 50, min: 1 }
+  ];
+
+  /**
+   * The index of the first object to return.
+   * Use with limit to get the next set of tracks.
+   */
+  optional uint32 offset = 4 [ default = 0 ];
+}
+
+message ArtistSearchResponse {
+  /** The returned artists */
+  optional ArtistPage artists = 1;
+}
+
+/** Endpoints for retrieving information about one or more artists from the Spotify catalog. */
+service ArtistMetadata {
+  option (fender.v1.fender_service) = {
+    address: "https://api.spotify.com",
+    request_format: JSON
+  };
+
+  /** Get Spotify catalog information for a single artist identified by their unique Spotify ID. */
+  rpc Get (GetArtistRequest) returns (GetArtistResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/artists/{+id}",
+      response_body_field: { name: "artist" }
+    };
+  }
+
+  /** Get Spotify catalog information for several artists based on their Spotify IDs. */
+  rpc List (ListArtistsRequest) returns (ListArtistsResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/artists"
+    };
+  }
+
+  /**
+   * Get Spotify catalog information about an artist’s albums.
+   * Optional parameters can be specified in the query string to filter and sort the response.
+   */
+  rpc Albums (AlbumsArtistsRequest) returns (AlbumsArtistsResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/artists/{+id}/albums",
+      response_body_field: { name: "album" }
+    };
+  }
+
+  /** Get Spotify catalog information about an artist’s top tracks by country. */
+  rpc TopTracks (TopTracksArtistsRequest) returns (TopTracksArtistsResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/artists/{+id}/top-tracks"
+    };
+  }
+
+  /** 
+   * Get Spotify catalog information about artists similar to a given artist.
+   * Similarity is based on analysis of the Spotify community’s listening history.
+   */
+  rpc RelatedArtists (RelatedArtistsRequest) returns (RelatedArtistsResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/artists/{+id}/related-artists"
+    };
+  }
+
+  /** 
+   * Get Spotify catalog information about artists, albums, or tracks that match a keyword string.
+   */
+  rpc Search (ArtistSearchRequest) returns (ArtistSearchResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/search"
+    };
+  }
+}
+

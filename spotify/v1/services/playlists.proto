@@ -1,0 +1,314 @@
+package spotify.v1;
+
+import "fender/v1/field_options.proto";
+import "fender/v1.proto";
+import "public/international/country_code.proto";
+import "spotify/v1/models/common.proto";
+import "spotify/v1/models/playlist.proto";
+
+/**
+ * Get a Playlist
+ * Get a playlist owned by a Spotify user.
+ *
+ * Authorization Required
+ */
+message GetPlaylistRequest {
+  /** The user's Spotify user ID */
+  optional string user_id = 1 [(fender.v1.fender_field).present = true];
+
+  /** The Spotify ID for the playlist. */
+  optional string playlist_id = 2 [(fender.v1.fender_field).present = true];
+ 
+  /**
+   * Filters for the query: a comma-separated list of the fields to return.
+   * If omitted, all fields are returned.
+   * Sub-fields can be excluded by prefixing them with an exclamation mark.
+   *
+   * For example, fields=href,name,owner(!href,external_urls) returns just the href and name fields and all the fields of the owner object except owner.href and owner.external_urls .
+   *
+   * Parentheses can be used to group fields hierarchically.
+   * For example, fields=tracks.items(added_by.id,track(name,href,album(name,href))).
+   */
+  optional string fields = 3;
+
+}
+
+message GetPlaylistResponse {
+  optional Playlist playlist = 1;
+}
+
+/**
+ * Get a List of a User’s Playlists
+ * Get a list of the playlists owned by a Spotify user. 
+ *
+ * Authoriaztion required
+ */
+message ListPlaylistsRequest {
+  /** The user's Spotify user ID. */
+  optional string user_id = 1 [(fender.v1.fender_field).present = true];
+
+  /** The maximum number of playlists to return. Default: 20. Minimum: 1. Maximum: 50. */
+  optional uint32 limit = 2 [
+    default = 20,
+    (fender.v1.fender_field) = { min: 1, max: 50 }
+  ];
+
+  /** The index of the first playlist to return. Default: 0 (the first object). Use with limit to get the next set of playlists. */
+  optional uint32 offset = 3;
+}
+
+message ListPlaylistsResponse {
+  repeated PlaylistPage playlist_pages = 1;
+}
+
+/** Get full details of the tracks of a playlist owned by a Spotify user. */
+message PlaylistTracksRequest {
+  /** The user's Spotify user ID. */
+  optional string user_id = 1 [(fender.v1.fender_field).present = true];
+
+  /** The SpotifyID fo the playlist */
+  optional string playlist_id = 2 [(fender.v1.fender_field).present = true];
+
+  /**
+   * Filters for the query: a comma-separated list of the fields to return.
+   * If omitted, all fields are returned.
+   * Sub-fields can be excluded by prefixing them with an exclamation mark.
+   *
+   * For example, fields=href,items(added_at),items.track.album(!external_urls,images) returns just the endpoint href, each track's added_at time, and all the fields of the track.album objects except external_urls and images.
+   *
+   * Parentheses can be used to group fields hierarchically.
+   */
+  optional string fields = 3;
+
+  /** The maximum number of tracks to return. Default: 100. Minimum: 1. Maximum: 100. */
+  optional uint32 limit = 4 [
+    default = 20, 
+    (fender.v1.fender_field) = { min: 1, max: 50 }
+  ];
+
+  /** The index of the first track to return. Default: 0 (the first object). Use with limit to get the next set of tracks. */
+  optional uint32 offset = 5;
+}
+
+message PlaylistTracksResponse {
+  repeated PlaylistTrackPage playlist_track_pages = 1;
+}
+
+/** 
+ * Create a playlist for a Spotify user. (The playlist will be empty until you add tracks.) 
+ *
+ * A valid access token from the Spotify Accounts service: see the Web API Authorization Guide for details.
+ * The access token must have been issued on behalf of the user.
+ *
+ * Creating a public playlist for a user requires authorization of the playlist-modify-public scope; creating a private playlist requires the playlist-modify-private scope.
+ * See Using Scopes.
+ */
+message CreatePlaylistRequest {
+  /** The user's Spotify user ID. */
+  optional string user_id = 1 [(fender.v1.fender_field).present = true];
+
+  /** The name for the new playlist, for example "Your Coolest Playlist". */
+  optional string name = 2 [(fender.v1.fender_field).present = true];
+
+  /** 
+   * If true the playlist will be public, if false it will be private.
+   * To be able to create private playlists, the user must have granted the playlist-modify-private scope.
+   */
+  optional bool pulbic = 3 [ default = true ];
+}
+
+message CreatePlaylistResponse {
+  optional Playlist playlist = 1;
+}
+
+/** Add one or more tracks to a user’s playlist. */
+message PlaylistAddTracksRequest {
+  /** The user's Spotify user ID. */
+  optional string user_id = 1 [(fender.v1.fender_field).present = true];
+
+  /** The Spotify ID for the playlist. */
+  optional string playlist_id = 2 [(fender.v1.fender_field).present = true];
+
+  /** 
+   * A comma-separated list of Spotify track URIs to add. 
+   * For example: uris=spotify:track:4iV5W9uYEdYUVa79Axb7Rh, spotify:track:1301WleyT98MSxVHPZCA6M
+   *
+   * A maximum of 100 tracks can be added in one request.
+   */
+  /**
+   * An array of the Spotify track URIs to add. 
+   * For example:
+  *   ["spotify:track:4iV5W9uYEdYUVa79Axb7Rh",
+  *    "spotify:track:1301WleyT98MSxVHPZCA6M"]
+  *
+  * A maximum of 100 tracks can be added in one request. 
+  */
+  repeated string uris = 3 [(fender.v1.fender_field).present = true];
+}
+
+
+
+
+/**
+ * Remove one or more tracks from a user’s playlist.
+ * Authorization required
+*/
+message PlaylistRemoveTracksRequest {
+  /** Specifies tracks to remove*/
+  message TrackSpecifier {
+    /** A spotify track uri
+     * Example: "spotify:track:4iV5W9uYEdYUVa79Axb7Rh"
+     */
+    optional string uri = 1 [(fender.v1.fender_field).present = true];
+
+    /** The current positions in the playlist */
+    repeated uint32 positions = 2;
+  }
+
+  /** The user's Spotify user ID. */
+  optional string user_id = 1 [(fender.v1.fender_field).present = true];
+
+  /** The Spotify ID for the playlist. */
+  optional string playlist_id = 2 [(fender.v1.fender_field).present = true];
+
+  /**
+   * An array of objects containing Spotify URIs of the tracks to remove.
+   * For example:
+   *     { "tracks": [{ "uri": "spotify:track:4iV5W9uYEdYUVa79Axb7Rh" },{ "uri": "spotify:track:1301WleyT98MSxVHPZCA6M" }] }
+   */
+  repeated TrackSpecifier tracks = 3;
+
+  /** 
+   * The playlist's snapshot ID against which you want to make the changes.
+   * The API will validate that the specified tracks exist and in the specified positions and make the changes, even if more recent changes have been made to the playlist.
+   * Although this mechanism should help avoid errors from conflicting edits, you should always endeavor to use the most recent snapshot_id available.
+   */
+  optional string snapshot_id = 4;
+}
+
+message PlaylistRemoveTracksResponse {
+  /** The current playlist snapshot id */
+  optional string snapshot_id = 1;
+}
+
+/** 
+ * Replace all the tracks in a playlist, overwriting its existing tracks.
+ * This powerful request can be useful for replacing tracks, re-ordering existing tracks, or clearing the playlist.
+ */
+message ReplaceTracksRequest {
+  /** The user's Spotify user ID. */
+  optional string user_id = 1 [(fender.v1.fender_field).present = true];
+
+  /** The Spotify ID for the playlist. */
+  optional string playlist_id = 2 [(fender.v1.fender_field).present = true];
+
+  /**  
+   * An array of the Spotify track URIs to set.
+   * For example: ["spotify:track:4iV5W9uYEdYUVa79Axb7Rh", "spotify:track:1301WleyT98MSxVHPZCA6M"]
+   * 
+   * Currently, a maximum of 100 tracks can be set.
+   * Note: if the uris parameter is present in the query string, any URIs listed here in the body will be ignored.
+   */
+  repeated string uris = 3 [(fender.v1.fender_field).present = true];
+}
+
+/** Change a playlist’s name and public/private state. (The user must, of course, own the playlist.) */
+message UpdatePlaylistRequest {
+  /** The user's Spotify user ID. */
+  optional string user_id = 1 [(fender.v1.fender_field).present = true];
+
+  /** The Spotify ID for the playlist. */
+  optional string playlist_id = 2 [(fender.v1.fender_field).present = true];
+
+  /** The new name for the playlist, for example "My New Playlist Title". */
+  optional string name = 3;
+
+  /** If true the playlist will be public, if false it will be private. */
+  optional bool public = 4;
+}
+
+/**
+ * Endpoints for retrieving information about a user’s playlists and for managing playlists.
+ * All endpoints in this service require OAUTH
+*/
+service PlaylistMetadata {
+  option (fender.v1.fender_service) = {
+    address: "https://api.spotify.com",
+    request_format: JSON
+  };
+
+  /** Get a playlist owned by a Spotify user. */
+  rpc Get (GetPlaylistRequest) returns (GetPlaylistResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/users/{+user_id}/playlists/{+playlist_id}",
+      response_body_field: { name: "playlist" }
+    };
+  }
+
+  /** Get a list of the playlists owned by a Spotify user. */
+  rpc List (ListPlaylistsRequest) returns (ListPlaylistsResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/users/{+user_id}/playlists",
+      response_body_field: { name: "playlist_pages" }
+    };
+  }
+
+  /** Get full details of the tracks of a playlist owned by a Spotify user. */
+  rpc Tracks (PlaylistTracksRequest) returns (PlaylistTracksResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/users/{+user_id}/playlists/{+playlist_id}/tracks",
+      response_body_field: { name: "playlist_track_pages" }
+    };
+  }
+
+  /** Create a playlist for a Spotify user. (The playlist will be empty until you add tracks.) */
+  rpc Create (CreatePlaylistRequest) returns (CreatePlaylistResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: POST,
+      http_path: "/v1/users/{+user_id}/playlists",
+      response_body_field: { name: "playlist" }
+    };
+  }
+
+  /** Add one or more tracks to a user’s playlist. */
+  rpc AddTracks (PlaylistAddTracksRequest) returns (Empty) {
+    option (fender.v1.fender_method) = {
+      http_method: POST,
+      http_path: "/v1/users/{user_id}/playlists/{playlist_id}/tracks"
+    };
+  }
+
+  /** Remove one or more tracks from a user’s playlist. */
+  rpc RemoveTracks (PlaylistRemoveTracksRequest) returns (PlaylistRemoveTracksResponse) {
+    option (fender.v1.fender_method) = {
+      http_method: DELETE,
+      http_path: "/v1/users/{user_id}/playlists/{playlist_id}/tracks",
+      force_body_request: true // The delete request is normally a query method, but this API requires use of the body
+    };
+  }
+
+  /** 
+   * Replace all the tracks in a playlist, overwriting its existing tracks.
+   * This powerful request can be useful for replacing tracks, re-ordering existing tracks, or clearing the playlist.
+   */
+  rpc ReplaceTracks (ReplaceTracksRequest) returns (Empty) {
+    option (fender.v1.fender_method) = {
+      http_method: PUT,
+      http_path: "/v1/users/{user_id}/playlists/{playlist_id}/tracks"
+    };
+  }
+
+  /** Change a playlist’s name and public/private state. (The user must, of course, own the playlist.) */
+  rpc Update (UpdatePlaylistRequest) returns (Empty) {
+    option (fender.v1.fender_method) = {
+      http_method: PUT,
+      http_path: "/v1/users/{user_id}/playlists/{playlist_id}"
+    };
+  }
+
+}
+
+

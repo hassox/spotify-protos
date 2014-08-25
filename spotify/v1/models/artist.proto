@@ -1,0 +1,66 @@
+package spotify.v1;
+
+import "spotify/v1/models/common.proto";
+import "fender/v1/field_options.proto";
+
+/** Provides data on a particular artist */
+message Artist {
+  /** Known external URLs for this artist */
+  optional ExternalUrl external_urls = 1;
+
+  /** 
+   * A list of the genres the artist is associated with. 
+   * For example: "Prog Rock", "Post-Grunge". 
+   * (If not yet classified, the array is empty.)
+   */
+  repeated string genres = 2;
+
+  /** A link to the Web API endpoint providing full details of the artist. */
+  optional string href = 3;
+
+  /** The Spotify ID of the artist */
+  optional string id = 4;
+
+  /** Images of the artist in various sizes, widest first. */
+  repeated Image images = 5;
+
+  /** The name of the artist */
+  optional string name = 6;
+
+  /** 
+   * The popularity of the artist. 
+   * The value will be between 0 and 100, with 100 being the most popular. 
+   * The artist's popularity is calculated from the popularity of all the artist's tracks.
+   */
+  optional uint32 popularity = 7 [(fender.v1.fender_field).max = 100];
+
+  /** The object type "artist" */
+  optional ObjectType type = 8 [ default = artist ];
+
+  /** The Spotify URI for the artist */
+  optional string uri = 9;
+}
+
+message ArtistPage {
+  /** A link to the Web API endpoint returning the full result of the request. */
+  optional string href = 1;
+
+  /** The requested artists */
+  repeated Artist items = 2;
+
+  /** The maximum number of items in the response (as set in the query or by default). */
+  optional uint32 limit = 3;
+
+  /** URL to the next page of items */
+  optional string next = 4;
+
+  /** The offset of the items returned (as set in the query or by default). */
+  optional uint32 offset = 5;
+
+
+  /** URL to the previous page of items */
+  optional string previous = 6;
+
+  /** The total number of items available to return. */
+  optional uint32 total = 7;
+}

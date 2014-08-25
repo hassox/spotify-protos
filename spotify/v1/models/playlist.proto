@@ -1,0 +1,129 @@
+package spotify.v1;
+
+import "spotify/v1/models/common.proto";
+import "spotify/v1/models/album.proto";
+
+/** Provides information about a specific playlist */
+message Playlist {
+  /** 
+   * true if the owner allows other users to modify the playlist. 
+   * Note: only non-collaborative playlists are currently returned by the Web API.
+   */
+  optional bool collaborative = 1;
+
+
+  /** 
+   * The playlist description. 
+   * Only returned for modified, verified playlists, otherwise null.
+   */
+  optional string description = 2;
+
+  /** Known external URLs for this playlist */
+  optional ExternalUrl external_urls = 3;
+
+  /** Information about the followers of the playlist */
+  optional Followers followers = 4;
+
+  /** A link to the Web API endpoint providing full details of the playlist. */
+  optional string href = 5;
+
+  /** The Spotify ID for the playlist */
+  optional string id = 6;
+
+  /** 
+   * The playlist image.
+   * Note that this field is only returned for modified, verified playlists, otherwise the array is empty.
+   * If returned, the source URL for the image (url) is temporary and will expire in less than a day.
+   */
+  repeated Image images = 7;
+
+  /** The name of the playlist */
+  optional string name = 8;
+
+  /** The user who owns the playlist */
+  optional User owner = 9;
+
+  /** true if the playlist is not marked as secret */
+  optional bool public = 10;
+
+  /** 
+   * The version identifier for the current playlist.
+   * Can be supplied in other requests to target a specific playlist version: see Remove tracks from a playlist
+   */
+  optional string snapshot_id = 11;
+
+  /** Information about the tracks of the playlist. */
+  repeated PlaylistTrackPage tracks = 12;
+
+  /** The object type "playlist" */
+  optional ObjectType type = 13 [ default = playlist ];
+
+  /** The Spotify URI for the artist */
+  optional string uri = 14;
+}
+
+message PlaylistTrack {
+  /**
+   * The date and time the track was added.
+   * Note that some very old playlists may return null in this field.
+   * This is an ISO-8601 format.
+   */
+  optional string added_at = 1;
+
+  /** 
+   * The Spotify user who added the track.
+   * Note that some very old playlists may return null in this field.
+   */
+  optional User added_by = 2;
+
+  /** Information about the track. */
+  optional Track track = 3;
+}
+
+message PlaylistTrackPage {
+  /** A link to the Web API endpoint returning the full result of the request. */
+  optional string href = 1;
+
+  /** The requested tracks */
+  repeated PlaylistTrack items = 2;
+
+  /** The maximum number of items in the response (as set in the query or by default). */
+  optional uint32 limit = 3;
+
+  /** URL to the next page of items */
+  optional string next = 4;
+
+  /** The offset of the items returned (as set in the query or by default). */
+  optional uint32 offset = 5;
+
+
+  /** URL to the previous page of items */
+  optional string previous = 6;
+
+  /** The total number of items available to return. */
+  optional uint32 total = 7;
+}
+
+message PlaylistPage {
+  /** A link to the Web API endpoint returning the full result of the request. */
+  optional string href = 1;
+
+  /** The requested playlists */
+  repeated Playlist items = 2;
+
+  /** The maximum number of items in the response (as set in the query or by default). */
+  optional uint32 limit = 3;
+
+  /** URL to the next page of items */
+  optional string next = 4;
+
+  /** The offset of the items returned (as set in the query or by default). */
+  optional uint32 offset = 5;
+
+
+  /** URL to the previous page of items */
+  optional string previous = 6;
+
+  /** The total number of items available to return. */
+  optional uint32 total = 7;
+}

@@ -1,0 +1,119 @@
+package spotify.v1;
+
+import "public/international/country_code.proto";
+
+enum DatePrecision {
+  year = 1;
+  month = 2;
+  day = 3;
+}
+
+enum ObjectType {
+  album = 1;
+  track = 2;
+  artist = 3;
+  playlist = 4;
+  user = 5;
+}
+
+message Empty {};
+
+/** 
+ * Represents a spotify user
+ */
+message User {
+  /** 
+   * The country of the user, as set in the user's account profile.
+   * This field is only available when the current user has granted access to the user-read-private scope.
+   */
+  optional public.international.CountryCode country = 1;
+
+  /**
+   * The name displayed on the user's profile.
+   * This field is only available when the current user has granted access to the user-read-private scope.
+   */
+  optional string display_name = 2;
+
+  /**
+   * The user's email address.
+   * This field is only available when the current user has granted access to the user-read-email scope.
+   */
+  optional string email = 3;
+
+  /**
+   * Known external URLs for this user.
+   */
+  optional ExternalUrl external_urls = 4;
+
+  /** A link to the Web API endpoint for this user */
+  optional string href = 5;
+
+  /** The Spotify ID for the user */
+  optional string id = 6;
+
+  /** 
+   * The user's profile image.
+   * This field is only available when the current user has granted access to the user-read-private scope.
+   */
+  repeated Image images = 7;
+
+  /** 
+   * The user's Spotify subscription level: "premium", "free", etc.
+   * This field is only available when the current user has granted access to the user-read-private scope.
+   */
+  optional string product = 8;
+
+
+  /** The object type "user" */
+  optional ObjectType type = 9 [ default = user ];
+
+  /** The Spotify URI for the user */
+  optional string uri = 10;
+}
+
+/** Returned when there is an error on the server */
+message Error {
+  /** The HTTP status code (also returned in the response header). */
+  optional uint32 status = 1;
+
+  /** A short description of the cause of the error. */
+  optional string message = 2;
+}
+
+message Followers {
+  /** A link to the Web API endpoint providing full details of the followers; null if not available. */
+  optional string href = 1;
+
+  /** Total number of followers */
+  optional uint32 total = 2;
+}
+
+/** External IDS for an albumn */
+message ExternalId {
+
+  /** International Standard Recording code */
+  optional string isrc = 1;
+
+  /** International Article Number */
+  optional string ean = 2;
+
+  /** Universal Product Code */
+  optional string upc = 3;
+}
+
+/** Known external URLS */
+message ExternalUrl {
+  /** A spotify external url */
+  optional string spotify = 1;
+}
+
+message Image {
+  /** The image height in pixels if known. */
+  optional uint32 height = 1;
+
+  /** The image width in pixels if known. */
+  optional uint32 width = 2;
+
+  /** The source URL of the image */
+  optional string url = 3;
+}

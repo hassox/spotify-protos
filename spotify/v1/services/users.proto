@@ -1,0 +1,39 @@
+package spotify.v1;
+
+import "fender/v1/field_options.proto";
+import "fender/v1.proto";
+import "spotify/v1/models/common.proto";
+
+/** Get public profile information about a Spotify user. */
+message UserRequestObject {
+  /** The user's Spotify user ID. */
+  optional string user_id = 1 [(fender.v1.fender_field).present = true];
+}
+
+/** Endpoints for retrieving information about a user’s profile. */
+service UserProfiles {
+  option (fender.v1.fender_service) = {
+    address: "https://api.spotify.com",
+    request_format: JSON
+  };
+
+  /** Get public profile information about a Spotify user. */
+  rpc Get (UserRequestObject) returns (User) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/users/{+user_id}"
+    };
+  }
+
+  /**
+   * Get detailed profile information about the current user (including the current user’s username).
+   * Requires Authorization
+   */
+  rpc Me (Empty) returns (User) {
+    option (fender.v1.fender_method) = {
+      http_method: GET,
+      http_path: "/v1/me"
+    };
+  }
+}
+
