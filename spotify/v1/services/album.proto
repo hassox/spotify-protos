@@ -102,7 +102,8 @@ message AlbumSearchResponse {
 service AlbumMetadata {
   option (fender.v1.fender_service) = {
     address: "https://api.spotify.com",
-    request_format: JSON
+    request_format: JSON,
+    cors_enabled: true
   };
 
   /**
